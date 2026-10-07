@@ -81,9 +81,7 @@ if st.session_state.step == 0:
     else:
         st.info("Googleドライブ連携機能は次のステップで本格有効化されます。まずは直接アップロードでお試しください！")
 
-# 【STEP 1：文字起こし】
-from PIL import Image
-
+# 【STEP 1：英文の文字起こし】
 elif st.session_state.step == 1:
     st.subheader("STEP 1: 英文の文字起こし")
     if st.session_state.uploaded_image:
@@ -92,9 +90,9 @@ elif st.session_state.step == 1:
         if not st.session_state.transcription:
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
-                    # --- 画像を軽量化（リサイズ）する処理を追加 ---
+                    # 画像を軽量化して高速化する処理
                     img = Image.open(st.session_state.uploaded_image)
-                    img.thumbnail((1024, 1024)) # 最大1024ピクセル以内に縮小して軽量化
+                    img.thumbnail((1024, 1024))
                     
                     response = model.generate_content([
                         img, 
