@@ -100,22 +100,17 @@ elif st.session_state.step == 1:
         if not st.session_state.transcription:
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
-                    # 1. 画像を開いてリサイズする
+                    # 1. 画像を開いてリサイズする（そのままPILオブジェクトとして保持）
                     img = Image.open(st.session_state.uploaded_image)
                     img.thumbnail((1024, 1024))
                     
                     # 透明度などがある場合に備えてRGBに変換
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
-                        
-                    # 2. メモリ上のファイル形式（BytesIO）に変換する
-                    img_byte_arr = io.BytesIO()
-                    img.save(img_byte_arr, format="JPEG")
-                    img_byte_arr.seek(0)
                     
-                    # 3. 変換したデータをGeminiに渡す
+                    # 2. PILオブジェクトのままGeminiに渡す
                     response = model.generate_content([
-                        img_byte_arr, 
+                        img, 
                         "この画像に含まれる英語の対話文を正確にすべて文字起こししてください。"
                     ], request_options={"timeout": 120})
                     
