@@ -82,6 +82,8 @@ if st.session_state.step == 0:
         st.info("Googleドライブ連携機能は次のステップで本格有効化されます。まずは直接アップロードでお試しください！")
 
 # 【STEP 1：文字起こし】
+from PIL import Image
+
 elif st.session_state.step == 1:
     st.subheader("STEP 1: 英文の文字起こし")
     if st.session_state.uploaded_image:
@@ -90,10 +92,15 @@ elif st.session_state.step == 1:
         if not st.session_state.transcription:
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
+                    # --- 画像を軽量化（リサイズ）する処理を追加 ---
+                    img = Image.open(st.session_state.uploaded_image)
+                    img.thumbnail((1024, 1024)) # 最大1024ピクセル以内に縮小して軽量化
+                    
                     response = model.generate_content([
-                        st.session_state.uploaded_image, 
+                        img, 
                         "この画像に含まれる英語の対話文を正確にすべて文字起こししてください。"
-                    ])
+                    ], request_options={"timeout": 120})
+                    
                     st.session_state.transcription = response.text
                 except Exception as e:
                     st.error(f"エラーが発生しました: {e}")
