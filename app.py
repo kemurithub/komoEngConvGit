@@ -62,6 +62,13 @@ with st.sidebar:
 # --- メイン画面：各STEPの処理 ---
 st.title("🗣️ パーソナル英語学習アプリ")
 
+import io
+from PIL import Image
+import streamlit as st
+import google.generativeai as genai
+
+# （もし初期化やAPIキー設定がこの下にあればそのまま置いてください）
+
 # 【STEP 0：画像アップロード】
 if st.session_state.step == 0:
     st.subheader("STEP 0: 画像のアップロード")
@@ -80,9 +87,6 @@ if st.session_state.step == 0:
                 st.rerun()
     else:
         st.info("Googleドライブ連携機能は次のステップで本格有効化されます。まずは直接アップロードでお試しください！")
-
-import io
-from PIL import Image
 
 # 【STEP 1：英文の文字起こし】
 elif st.session_state.step == 1:
@@ -121,7 +125,7 @@ elif st.session_state.step == 1:
             if st.button("カスタマイズ準備へ進む (STEP 2)"):
                 st.session_state.step = 2
                 st.rerun()
-
+                
 # 【STEP 2 & 2.5：カスタマイズ準備 ＆ 質問作成・編集確認】
 elif st.session_state.step == 2:
     st.subheader("STEP 2 & 2.5: カスタマイズの準備と編集確認")
