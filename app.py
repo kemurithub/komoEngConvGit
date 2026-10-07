@@ -111,10 +111,18 @@ elif st.session_state.step == 2:
     
     if not st.session_state.questions:
         with st.spinner("AIが質問を作成中..."):
-            prompt = f"以下の対話をベースに、ユーザーの生活に合わせた自然な表現にするための日本語の質問を5つ作成してください（英語のレベルは下げないでください）。\n\n{st.session_state.transcription}"
+            prompt = f"""以下の対話をベースに、ユーザーの生活に合わせた自然な表現にするための日本語の質問を5つだけ作成してください。
+【重要条件】
+- 余計な説明、挨拶、マークダウンの見出し（###）や引用（>）、番号（1.やQ1など）は一切つけないでください。
+- 純粋な質問文のテキストだけを、1行に1つずつ、合計5行だけ出力してください。
+
+対話データ:
+{st.session_state.transcription}"""
+            
             response = model.generate_content(prompt)
-            # 簡易的に行ごとに分割して質問リストにする
-            st.session_state.questions = [q.strip() for q in response.text.split('\n') if q.strip()][:5]
+            # 改行区切りで綺麗に5つ取得する
+            lines = [q.strip() for q in response.text.split('\n') if q.strip()]
+            st.session_state.questions = lines[:5]
     
     # 質問に対する回答入力フォーム
     with st.form("answers_form"):
