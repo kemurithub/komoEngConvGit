@@ -144,7 +144,10 @@ elif st.session_state.step == 3:
         with st.spinner("カスタマイズスクリプトを作成中..."):
             q_a_text = "\n".join([f"Q: {st.session_state.questions[i]}\nA: {ans}" for i, ans in st.session_state.answers.items()])
             prompt = f"元の対話と以下のユーザーの回答をもとに、より自然で実践的な英語スクリプトを作成してください。\n\n【元の対話】\n{st.session_state.transcription}\n\n【ユーザーの回答】\n{q_a_text}"
-            response = model.generate_content(prompt)
+            response = model.generate_content(
+    prompt,
+    request_options={"timeout": 120}
+)
             st.session_state.script = response.text
             
     st.markdown("### 作成されたスクリプト")
