@@ -79,15 +79,18 @@ if st.session_state.step == 0:
     if upload_option == "スマホから直接アップロード":
         uploaded_file = st.file_uploader("画像をアップロード（PNG / JPG）", type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.session_state.uploaded_image = image
-            st.image(image, caption="アップロードされた画像", use_container_width=True)
+            # ★ファイルをそのままセッションに保存する
+            st.session_state.uploaded_image = uploaded_file
+            
+            # プレビュー表示
+            st.image(uploaded_file, caption="アップロードされた画像", use_container_width=True)
+            
             if st.button("文字起こしへ進む (STEP 1)"):
                 st.session_state.step = 1
                 st.rerun()
     else:
         st.info("Googleドライブ連携機能は次のステップで本格有効化されます。まずは直接アップロードでお試しください！")
-
+        
 # 【STEP 1：英文の文字起こし】
 elif st.session_state.step == 1:
     st.subheader("STEP 1: 英文の文字起こし")
