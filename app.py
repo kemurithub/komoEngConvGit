@@ -165,8 +165,20 @@ elif st.session_state.step == 3:
         with st.spinner("カスタマイズスクリプトを作成中..."):
             q_a_text = "\n".join([f"Q: {st.session_state.questions[i]}\nA: {ans}" for i, ans in st.session_state.answers.items()])
             
-            # プロンプトはシンプルに
-            prompt = f"以下の元の対話と回答をもとに、英語の完成スクリプトを作成してください。\n\n【元の対話】\n{st.session_state.transcription}\n\n【回答】\n{q_a_text}"
+            # ★プロンプトの工夫：セリフだけを ``` で囲ませ、解説は外に書かせる
+            prompt = f"""
+以下の元の対話と回答をもとに、英語の完成スクリプトを作成してください。
+
+【厳守ルール】
+1. 英語の対話スクリプトの本文（セリフ）のみを、必ず ``` で囲んで出力してください。
+2. 日本語の解説やまとめを書く場合は、必ず ``` の外（後ろなど）に書いてください。
+
+【元の対話】
+{st.session_state.transcription}
+
+【回答】
+{q_a_text}
+"""
             
             response = model.generate_content(
                 prompt,
@@ -177,7 +189,7 @@ elif st.session_state.step == 3:
     st.markdown("### 作成されたスクリプト")
     st.markdown(st.session_state.script)
     
-    # --- STEP 4：音声読み上げ機能 ---
+    # --- STEP 4：音声読み上げ機能（別の変数にきれいに抽出する） ---
     st.markdown("---")
     st.subheader("🔊 STEP 4: 音声読み上げ")
     
@@ -186,16 +198,23 @@ elif st.session_state.step == 3:
         
         if st.button("音声を生成する"):
             with st.spinner("音声を生成しています..."):
-                script_text = st.session_state.script
+                full_script = st.session_state.script
                 
-                # ★行頭の話者名（A: や Ken: など）だけを削除し、文中の人名はそのまま残す処理
-                cleaned_text = re.sub(r'^[^\n]*?[:：]\s*', '', script_text, flags=re.MULTILINE)
+                # ★1. コードブロック（```）の中身だけを「音声読み上げ用（audio_text）」として抽出する
+                match = re.search(r'```(?:text|english)?\s*([\s\S]*?)```', full_script)
+                if match:
+                    audio_text = match.group(1) # ここにはセリフの英語だけが入る
+                else:
+                    audio_text = full_script # 囲みがない場合の保険
                 
-                # マークダウンの記号を掃除
-                cleaned_text = cleaned_text.replace('#', '').replace('*', '')
+                # ★2. 話者名（A: や Ken: など）を行頭から削除
+                audio_text = re.sub(r'^[^\n]*?[:：]\s*', '', audio_text, flags=re.MULTILINE)
                 
-                # gTTSで音声データを作成
-                tts = gTTS(text=cleaned_text, lang='en')
+                # ★3. マークダウンの記号を掃除
+                audio_text = audio_text.replace('#', '').replace('*', '')
+                
+                # ★4. 完全に純粋になった英語だけをgTTSに渡す
+                tts = gTTS(text=audio_text, lang='en')
                 audio_bytes = io.BytesIO()
                 tts.write_to_fp(audio_bytes)
                 audio_bytes.seek(0)
