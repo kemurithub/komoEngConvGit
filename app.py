@@ -164,7 +164,9 @@ elif st.session_state.step == 3:
     if not st.session_state.script:
         with st.spinner("カスタマイズスクリプトを作成中..."):
             q_a_text = "\n".join([f"Q: {st.session_state.questions[i]}\nA: {ans}" for i, ans in st.session_state.answers.items()])
-            prompt = f"元の対話と以下のユーザーの回答をもとに、より自然で実践的な英語スクリプトを作成してください。\n\n【元の対話】\n{st.session_state.transcription}\n\n【ユーザーの回答】\n{q_a_text}"
+            
+            # プロンプトはシンプルに
+            prompt = f"以下の元の対話と回答をもとに、英語の完成スクリプトを作成してください。\n\n【元の対話】\n{st.session_state.transcription}\n\n【回答】\n{q_a_text}"
             
             response = model.generate_content(
                 prompt,
@@ -175,30 +177,37 @@ elif st.session_state.step == 3:
     st.markdown("### 作成されたスクリプト")
     st.markdown(st.session_state.script)
     
-    # --- 【ここからが STEP 4：音声読み上げ機能の実装部】 ---
+    # --- STEP 4：音声読み上げ機能 ---
     st.markdown("---")
     st.subheader("🔊 STEP 4: 音声読み上げ")
     
     try:
-        # 音声生成ボタンを用意
+        import re
+        
         if st.button("音声を生成する"):
             with st.spinner("音声を生成しています..."):
-                # ここが st.session_state.script になっているか確認！
-                tts = gTTS(text=st.session_state.script, lang='en')
+                script_text = st.session_state.script
+                
+                # ★行頭の話者名（A: や Ken: など）だけを削除し、文中の人名はそのまま残す処理
+                cleaned_text = re.sub(r'^[^\n]*?[:：]\s*', '', script_text, flags=re.MULTILINE)
+                
+                # マークダウンの記号を掃除
+                cleaned_text = cleaned_text.replace('#', '').replace('*', '')
+                
+                # gTTSで音声データを作成
+                tts = gTTS(text=cleaned_text, lang='en')
                 audio_bytes = io.BytesIO()
                 tts.write_to_fp(audio_bytes)
                 audio_bytes.seek(0)
                 
-                # セッションに音声を保存
                 st.session_state.audio_data = audio_bytes
         
-        # すでに音声データがあればプレイヤーを表示
+        # 音声データがあればプレイヤーを表示
         if "audio_data" in st.session_state and st.session_state.audio_data:
             st.audio(st.session_state.audio_data, format="audio/mp3")
             
     except Exception as e:
         st.error(f"音声生成エラー: {e}")
-    # --- 【ここまで】 ---
     
     st.markdown("---")
     if st.button("マンガ作成へ進む (STEP 5)"):
