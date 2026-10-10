@@ -183,7 +183,7 @@ elif st.session_state.step == 3:
         # 音声生成ボタンを用意
         if st.button("音声を生成する"):
             with st.spinner("音声を生成しています..."):
-                # gTTSを使って生成されたスクリプトを英語の音声（MP3）に変換
+                # ここが st.session_state.script になっているか確認！
                 tts = gTTS(text=st.session_state.script, lang='en')
                 audio_bytes = io.BytesIO()
                 tts.write_to_fp(audio_bytes)
@@ -204,6 +204,7 @@ elif st.session_state.step == 3:
     if st.button("マンガ作成へ進む (STEP 5)"):
         st.session_state.step = 5
         st.rerun()
+
 # 【STEP 5 & 6：マンガ作成 ＆ ロールプレイ】
 elif st.session_state.step == 5:
     st.subheader("STEP 5 & 6: 4コマ漫画作成 ＆ ロールプレイ")
