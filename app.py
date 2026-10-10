@@ -4,6 +4,7 @@ import json
 import os
 from io import BytesIO
 from PIL import Image
+from gtts import gTTS
 
 # ページの設定
 st.set_page_config(
