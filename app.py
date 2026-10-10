@@ -8,7 +8,7 @@ from gtts import gTTS
 
 # ページの設定
 st.set_page_config(
-    page_title="Personal English Learning App",
+    page_title="komoEngConv2026",
     page_icon="🗣️",
     layout="centered",
     initial_sidebar_state="expanded"
@@ -159,14 +159,13 @@ elif st.session_state.step == 2:
 
 # 【STEP 3 & 4：スクリプト作成 ＆ 読み上げ】
 elif st.session_state.step == 3:
-    st.subheader("STEP 3 & 4: カスタマイズスクリプト ＆ 読み上げ")
+    st.subheader("STEP 3 & 4: カスタマイズスクリプト ＆ 音声読み上げ")
     
     if not st.session_state.script:
         with st.spinner("カスタマイズスクリプトを作成中..."):
             q_a_text = "\n".join([f"Q: {st.session_state.questions[i]}\nA: {ans}" for i, ans in st.session_state.answers.items()])
             prompt = f"元の対話と以下のユーザーの回答をもとに、より自然で実践的な英語スクリプトを作成してください。\n\n【元の対話】\n{st.session_state.transcription}\n\n【ユーザーの回答】\n{q_a_text}"
             
-            # タイムアウトを120秒（2分）に延長
             response = model.generate_content(
                 prompt,
                 request_options={"timeout": 120}
@@ -176,12 +175,35 @@ elif st.session_state.step == 3:
     st.markdown("### 作成されたスクリプト")
     st.markdown(st.session_state.script)
     
-    st.info("💡 STEP 4: スクリプトの音声読み上げ機能（ブラウザ再生）がここに組み込まれます。")
+    # --- 【ここからが STEP 4：音声読み上げ機能の実装部】 ---
+    st.markdown("---")
+    st.subheader("🔊 STEP 4: 音声読み上げ")
     
+    try:
+        # 音声生成ボタンを用意
+        if st.button("音声を生成する"):
+            with st.spinner("音声を生成しています..."):
+                # gTTSを使って生成されたスクリプトを英語の音声（MP3）に変換
+                tts = gTTS(text=st.session_state.script, lang='en')
+                audio_bytes = io.BytesIO()
+                tts.write_to_fp(audio_bytes)
+                audio_bytes.seek(0)
+                
+                # セッションに音声を保存
+                st.session_state.audio_data = audio_bytes
+        
+        # すでに音声データがあればプレイヤーを表示
+        if "audio_data" in st.session_state and st.session_state.audio_data:
+            st.audio(st.session_state.audio_data, format="audio/mp3")
+            
+    except Exception as e:
+        st.error(f"音声生成エラー: {e}")
+    # --- 【ここまで】 ---
+    
+    st.markdown("---")
     if st.button("マンガ作成へ進む (STEP 5)"):
         st.session_state.step = 5
         st.rerun()
-
 # 【STEP 5 & 6：マンガ作成 ＆ ロールプレイ】
 elif st.session_state.step == 5:
     st.subheader("STEP 5 & 6: 4コマ漫画作成 ＆ ロールプレイ")
