@@ -8,7 +8,7 @@ import io
 # ==========================================
 st.set_page_config(
     page_title="komoEngConv2026",
-    page_icon="🗣️",
+    page_icon="🎧",
     layout="centered",
     initial_sidebar_state="expanded"
 )
@@ -55,7 +55,7 @@ with st.sidebar:
     st.info("教科書の画像を読み込み、あなただけのパーソナルな英語スクリプトを作成・ダウンロードできるツールです。")
 
 # --- メイン画面：各STEPの処理 ---
-st.title("🗣️ komoEngConvApp_1")
+st.title("🎧 komoEngConvApp_1")
 
 # 【STEP 0：画像アップロード】
 if st.session_state.step == 0:
