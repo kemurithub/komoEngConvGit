@@ -26,7 +26,7 @@ except Exception as e:
 
 # Gemini APIの初期設定
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-3.8-flash')
 
 # --- セッション状態の初期化 ---
 if "page" not in st.session_state:
