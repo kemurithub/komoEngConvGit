@@ -170,4 +170,86 @@ elif st.session_state.page == "step2":
             
             response = model.generate_content(prompt)
             lines = [q.strip() for q in response.text.split('\n') if q.strip()]
-            st.
+            st.session_state.questions = lines[:5]
+    
+    with st.form("answers_form"):
+        user_answers = {}
+        for i, q in enumerate(st.session_state.questions):
+            user_answers[i] = st.text_input(f"Q{i+1}: {q}")
+        
+        submitted = st.form_submit_button("回答を確定して完成スクリプトを作成する")
+        if submitted:
+            st.session_state.answers = user_answers
+            st.session_state.page = "step3"
+            st.rerun()
+
+# 【STEP 3：スクリプト作成 ＆ テキストダウンロード ＆ 後半アプリへの導線】
+elif st.session_state.page == "step3":
+    st.title("🎧 komoEngConvApp_1")
+    st.subheader("STEP 3: 完成スクリプトの作成とダウンロード")
+    
+    if not st.session_state.script:
+        with st.spinner("カスタマイズスクリプトを作成中..."):
+            q_a_text = "\n".join([f"Q: {st.session_state.questions[i]}\nA: {ans}" for i, ans in st.session_state.answers.items()])
+            
+            prompt = f"""
+以下の元の対話と回答をもとに、英語の完成スクリプトを作成してください。
+
+【元の対話】
+{st.session_state.transcription}
+
+【回答】
+{q_a_text}
+"""
+            try:
+                response = model.generate_content(
+                    prompt,
+                    request_options={"timeout": 120}
+                )
+                generated_script = response.text
+                st.session_state.script = generated_script
+                
+                # 履歴に自動保存
+                today_str = datetime.date.today().strftime("%Y-%m-%d %H:%M")
+                st.session_state.history.append({
+                    "date": today_str,
+                    "script": generated_script
+                })
+            except Exception as e:
+                st.error(f"生成エラーが発生しました: {e}")
+            
+    if st.session_state.script:
+        st.markdown("### 📄 作成されたスクリプト")
+        st.markdown(st.session_state.script)
+        
+        st.markdown("---")
+        
+        # ワンクリックでテキストファイルとしてダウンロード
+        st.download_button(
+            label="💾 スクリプトをテキストファイル（.txt）でダウンロード",
+            data=st.session_state.script,
+            file_name="radio_english_script.txt",
+            mime="text/plain"
+        )
+        
+        st.markdown("---")
+        
+        # 後半アプリへの移動ボタン
+        st.markdown("### 🚀 次のステップへ進む")
+        st.write("ダウンロードしたテキストファイルを使って、後半アプリで音声読み上げとロールプレイ練習を行いましょう！")
+        st.link_button(
+            "🎧 後半アプリ（ロールプレイ＆音声練習）を開く", 
+            PART2_APP_URL, 
+            type="primary",
+            use_container_width=True
+        )
+        
+        st.markdown("---")
+        if st.button("🔄 最初からやり直す"):
+            st.session_state.page = "step0"
+            st.session_state.uploaded_image = None
+            st.session_state.transcription = ""
+            st.session_state.questions = []
+            st.session_state.answers = {}
+            st.session_state.script = ""
+            st.rerun()
