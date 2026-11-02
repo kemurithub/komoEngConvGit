@@ -132,15 +132,25 @@ elif st.session_state.page == "step1":
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
                     img = Image.open(st.session_state.uploaded_image)
-                    img.thumbnail((800, 800))  # 画像を最適化して軽量化
+                    img.thumbnail((640, 640))  # 解像度を最適化
                     
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
                     
+                    # JPEGバイトに圧縮してデータ容量を大幅に削減（504エラー対策）
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="JPEG", quality=80)
+                    img_bytes = buffered.getvalue()
+                    
+                    image_part = {
+                        "mime_type": "image/jpeg",
+                        "data": img_bytes
+                    }
+                    
                     response = model.generate_content([
-                        img, 
+                        image_part, 
                         "この画像に含まれる英語の対話文を正確にすべて文字起こししてください。"
-                    ], request_options={"timeout": 180})  # タイムアウトを180秒に延長
+                    ], request_options={"timeout": 180})
                     
                     st.session_state.transcription = response.text
                 except Exception as e:
