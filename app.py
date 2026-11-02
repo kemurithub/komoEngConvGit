@@ -25,7 +25,7 @@ except Exception:
 
 genai.configure(api_key=GEMINI_API_KEY)
 # 最新の安定した軽量モデルを指定
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # --- セッション状態の初期化 ---
 if "page" not in st.session_state:
