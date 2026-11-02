@@ -25,7 +25,7 @@ except Exception:
 
 genai.configure(api_key=GEMINI_API_KEY)
 # 最新の安定した軽量モデルを指定
-model = genai.GenerativeModel('gemini-3.8-flash')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- セッション状態の初期化 ---
 if "page" not in st.session_state:
@@ -121,7 +121,7 @@ elif st.session_state.page == "step1":
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
                     img = Image.open(st.session_state.uploaded_image)
-                    img.thumbnail((1000, 1000))  # 解像度の最適化
+                    img.thumbnail((800, 800))  # 解像度の最適化
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
                     
