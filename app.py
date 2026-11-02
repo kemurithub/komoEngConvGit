@@ -132,7 +132,7 @@ elif st.session_state.page == "step1":
             with st.spinner("AIが画像を読み取り、英文を文字起こししています..."):
                 try:
                     img = Image.open(st.session_state.uploaded_image)
-                    img.thumbnail((1024, 1024))
+                    img.thumbnail((800, 800))  # 画像を最適化して軽量化
                     
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
@@ -140,7 +140,7 @@ elif st.session_state.page == "step1":
                     response = model.generate_content([
                         img, 
                         "この画像に含まれる英語の対話文を正確にすべて文字起こししてください。"
-                    ], request_options={"timeout": 120})
+                    ], request_options={"timeout": 180})  # タイムアウトを180秒に延長
                     
                     st.session_state.transcription = response.text
                 except Exception as e:
@@ -168,20 +168,27 @@ elif st.session_state.page == "step2":
 対話データ:
 {st.session_state.transcription}"""
             
-            response = model.generate_content(prompt)
-            lines = [q.strip() for q in response.text.split('\n') if q.strip()]
-            st.session_state.questions = lines[:5]
+            try:
+                response = model.generate_content(
+                    prompt,
+                    request_options={"timeout": 180}
+                )
+                lines = [q.strip() for q in response.text.split('\n') if q.strip()]
+                st.session_state.questions = lines[:5]
+            except Exception as e:
+                st.error(f"質問作成中にエラーが発生しました: {e}")
     
-    with st.form("answers_form"):
-        user_answers = {}
-        for i, q in enumerate(st.session_state.questions):
-            user_answers[i] = st.text_input(f"Q{i+1}: {q}")
-        
-        submitted = st.form_submit_button("回答を確定して完成スクリプトを作成する")
-        if submitted:
-            st.session_state.answers = user_answers
-            st.session_state.page = "step3"
-            st.rerun()
+    if st.session_state.questions:
+        with st.form("answers_form"):
+            user_answers = {}
+            for i, q in enumerate(st.session_state.questions):
+                user_answers[i] = st.text_input(f"Q{i+1}: {q}")
+            
+            submitted = st.form_submit_button("回答を確定して完成スクリプトを作成する")
+            if submitted:
+                st.session_state.answers = user_answers
+                st.session_state.page = "step3"
+                st.rerun()
 
 # 【STEP 3：スクリプト作成 ＆ テキストダウンロード ＆ 後半アプリへの導線】
 elif st.session_state.page == "step3":
@@ -204,7 +211,7 @@ elif st.session_state.page == "step3":
             try:
                 response = model.generate_content(
                     prompt,
-                    request_options={"timeout": 120}
+                    request_options={"timeout": 180}
                 )
                 generated_script = response.text
                 st.session_state.script = generated_script
